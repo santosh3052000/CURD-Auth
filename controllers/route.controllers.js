@@ -48,18 +48,21 @@ routeFunc.show = async(req,res,next)=>{
 
 routeFunc.update = async(req,res,next)=>{
     try{
-        let loggedUser = await user.findOne({_id:req.user.id},{password:0})
-        let toupdateUser = await user.findOne({email:req.body.email},{password:0})
-        if(loggedUser._id.toString() === toupdateUser._id.toString()){
+        let loggedUser = req.user
+        let toUpdateUser = await user.findOne({email:req.body.email},{password:0})
+        if(toUpdateUser == null){
+            return res.json({Message:"You can't modify other user details ! - No user !"})
+        }
+        if(toUpdateUser && loggedUser._id.toString() === toUpdateUser._id.toString()){
             let updatedUser = await user.findOneAndUpdate({email:req.user.email},
                 {$set:{
                     username:req.body.username
                 }},
                 {new:true}
             ).select("-_id username email")
-            res.json({Message:'User updated !',From:req.user,To:updatedUser})
+            return res.json({Message:'User updated !',From:req.user,To:updatedUser})
         }else{
-            res.json({Message:'You cant modify other user details !'})
+            return res.json({Message:"You can't modify other user details !"})
         }
     }catch(err){
         next(err)
@@ -68,13 +71,16 @@ routeFunc.update = async(req,res,next)=>{
 
 routeFunc.delete = async(req,res,next)=>{
     try{
-        let todeleteUser = await user.findOne({_id:req.user.id})
-        let loggedUser = await user.findOne({_id:req.user.id})
-        if(todeleteUser._id.toString() === loggedUser._id.toString()){
+        let toDeleteUser = await user.findOne({username:req.body.username},{password:0})
+        let loggedUser = req.user
+        if(toDeleteUser == null){
+            return res.json({Message:"You can't delete other user ! - No user !"})
+        }
+        if(toDeleteUser._id.toString() === loggedUser._id.toString()){
             await user.deleteOne({_id:req.user.id})
-            res.json({Message:`The user ${todeleteUser.username} has been deleted !`})
+            res.json({Message:`The user ${toDeleteUser.username} has been deleted !`})
         }else{
-            res.json({Message:'You cant delete other user !'})
+            res.json({Message:"You can't delete other user !"})
         }
     }catch(err){
         next(err)

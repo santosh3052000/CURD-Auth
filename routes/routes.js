@@ -8,6 +8,6 @@ router.get('/getAllUsers',authenticater.tokenCheck,routeFunc.show)
 router.post('/register',routeFunc.create)
 router.post('/login',Check.Password,authenticater.loginAuthenticator)
 router.put('/update',authenticater.tokenCheck,routeFunc.update)
-router.delete('/:id',authenticater.tokenCheck,routeFunc.delete)
+router.delete('/delete',authenticater.tokenCheck,routeFunc.delete)
 
 module.exports = router

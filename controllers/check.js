@@ -9,7 +9,7 @@ Check.Password = async(req,res,next)=>{
         let exUser = await user.findOne({email},{_id:1,email:1,password:1,username:1})
         const isMatch = exUser ? await bcrypt.compare(password,exUser.password) : false
         if(exUser && isMatch){
-            req.body = exUser
+            req.user = exUser
             console.log(exUser)
             next()
         }else{

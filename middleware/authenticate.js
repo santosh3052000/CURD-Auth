@@ -8,10 +8,10 @@ authenticater.loginAuthenticator = (req,res,next)=>{
     try{ 
         let accessToken = jwt.sign({
             user:{
-                id:req.body._id
+                id:req.user._id
             }
         },process.env.SECRET_STRING,{expiresIn:process.env.EXP_TIME})
-        return res.json({Message:`Hi ${req.body.username} ! from authenticater :)`,Token:accessToken})
+        return res.json({Message:`Hi ${req.user.username} ! from authenticater :)`,Token:accessToken})
     }catch(err){
         next(err)
     }
