@@ -35,8 +35,7 @@ routeFunc.login = async(req,res,next)=>{
 
 routeFunc.show = async(req,res,next)=>{
     try{
-        let isAdmin = await user.findOne({_id:req.user.id})
-        if(isAdmin.role === "admin"){
+        if(req.user.role === "admin"){
             let allUsers = await user.find({},{_id:0,username:1})
             return res.json({Data:allUsers})
         }
@@ -62,7 +61,7 @@ routeFunc.update = async(req,res,next)=>{
             ).select("-_id username email")
             return res.json({Message:'User updated !',From:req.user,To:updatedUser})
         }else{
-            return res.json({Message:"You can't modify other user details !"})
+            return res.status(403).json({Message:"You can't modify other user details !"})
         }
     }catch(err){
         next(err)
@@ -77,10 +76,10 @@ routeFunc.delete = async(req,res,next)=>{
             return res.json({Message:"You can't delete other user ! - No user !"})
         }
         if(toDeleteUser._id.toString() === loggedUser._id.toString()){
-            await user.deleteOne({_id:req.user.id})
-            res.json({Message:`The user ${toDeleteUser.username} has been deleted !`})
+            await user.deleteOne({_id:req.user._id})
+            return res.json({Message:`The user ${toDeleteUser.username} has been deleted !`})
         }else{
-            res.json({Message:"You can't delete other user !"})
+            return res.status(403).json({Message:"You can't delete other user !"})
         }
     }catch(err){
         next(err)
