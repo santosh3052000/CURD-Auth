@@ -6,22 +6,24 @@ let Check = {}
 Check.Password = async(req,res,next)=>{
     try{
         const {email,password} = req.body
-        let exUser = await user.findOne({email},{_id:0,email:1,password:1,username:1})
-        const isMatch = await bcrypt.compare(password,exUser.password)
+        let exUser = await user.findOne({email},{_id:1,email:1,password:1,username:1})
+        const isMatch = exUser ? await bcrypt.compare(password,exUser.password) : false
         if(exUser && isMatch){
             req.body = exUser
             console.log(exUser)
+            next()
         }else{
             let err = new Error('Invalid email or password !')
             err.status = 401
-            next(err)
+            return next(err)
         }
-        next()
     }catch(err){
         next(err)
     }
 }
 
+
+// Old version of Code - Not the right design
 Check.Token = async(req,res,next)=>{
     try{
         let token

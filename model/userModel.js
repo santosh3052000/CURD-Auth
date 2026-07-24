@@ -12,7 +12,11 @@ let userSchema = mongoose.Schema({
         required:[true,'Password is required']
     },
     phone:Number,
-    systemAdmin:Boolean},
+    role: {
+        type: String,
+        enum: ["user", "admin"],
+        default: "user",
+    }},
     {timestamps: true}
 )
 

@@ -6,15 +6,14 @@ const routeFunc = {}
 routeFunc.create = async(req,res,next)=>{
     try{
         const password = req.body.password
-        hashedPassword = await bcrypt.hash(password,12)
+        const hashedPassword = await bcrypt.hash(password,12)
         let newUser = await user.create({
             username: req.body.username,
             email: req.body.email,
             password: hashedPassword,
-            phone: req.body.phone,
-            systemAdmin: req.body.systemAdmin
+            phone: req.body.phone
         })
-        res.json({Message:`Welcome ${newUser.username} !`}).status(201)
+        res.json({Message:`Welcome ${newUser.username}!`}).status(201)
     }catch(err){
         next(err)
     }
@@ -28,7 +27,7 @@ routeFunc.login = async(req,res,next)=>{
                 email:req.body.email
             }
         },process.env.SECRET_STRING,{expiresIn:process.env.EXP_TIME})
-        res.json({Message:`Hi ${req.body.username} !`,Token:ascessToken})
+        return res.json({Message:`Hi ${req.body.username} !`,Token:ascessToken})
     }catch(err){
         next(err)
     }
@@ -36,12 +35,12 @@ routeFunc.login = async(req,res,next)=>{
 
 routeFunc.show = async(req,res,next)=>{
     try{
-        let isAdmin = await user.findOne({email:req.user.email})
-        if(isAdmin.systemAdmin){
+        let isAdmin = await user.findOne({_id:req.user.id})
+        if(isAdmin.role === "admin"){
             let allUsers = await user.find({},{_id:0,username:1})
-            res.json({Data:allUsers})
+            return res.json({Data:allUsers})
         }
-        res.json({Message:'Only System Admin can fetch all users !'})
+        return res.json({Message:'Only System Admin can fetch all users !'})
     }catch(err){
         next(err)
     }
@@ -49,7 +48,7 @@ routeFunc.show = async(req,res,next)=>{
 
 routeFunc.update = async(req,res,next)=>{
     try{
-        let loggedUser = await user.findOne({email:req.user.email},{password:0})
+        let loggedUser = await user.findOne({_id:req.user.id},{password:0})
         let toupdateUser = await user.findOne({email:req.body.email},{password:0})
         if(loggedUser._id.toString() === toupdateUser._id.toString()){
             let updatedUser = await user.findOneAndUpdate({email:req.user.email},
@@ -69,10 +68,10 @@ routeFunc.update = async(req,res,next)=>{
 
 routeFunc.delete = async(req,res,next)=>{
     try{
-        let todeleteUser = await user.findOne({_id:req.params.id})
-        let loggedUser = await user.findOne({username:req.user.username})
+        let todeleteUser = await user.findOne({_id:req.user.id})
+        let loggedUser = await user.findOne({_id:req.user.id})
         if(todeleteUser._id.toString() === loggedUser._id.toString()){
-            await user.deleteOne({_id:req.params.id})
+            await user.deleteOne({_id:req.user.id})
             res.json({Message:`The user ${todeleteUser.username} has been deleted !`})
         }else{
             res.json({Message:'You cant delete other user !'})
