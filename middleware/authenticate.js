@@ -20,6 +20,7 @@ authenticater.loginAuthenticator = (req,res,next)=>{
 
 authenticater.tokenCheck = async(req,res,next)=>{
     try{
+        console.log("1 - Enter tokenCheck");
         let token
         let auth = req.headers.authorization || req.headers.Authorization
         if(!auth){
@@ -34,11 +35,14 @@ authenticater.tokenCheck = async(req,res,next)=>{
         }
         token = auth.split(' ')[1]
         const decoded = jwt.verify(token,process.env.SECRET_STRING)
+        console.log("2 - JWT verified");
         const existingUser = await user.findById(decoded.user.id,{password:0})
         if(!existingUser){
             return res.status(401).json({message:"Not user Found !"})
         }
         req.user = existingUser
+        console.log("3 - User found");
+        console.log("4 - Going to ownership");
         next()
     }catch(err){
         next(err)

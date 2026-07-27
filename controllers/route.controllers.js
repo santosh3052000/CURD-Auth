@@ -35,11 +35,11 @@ routeFunc.login = async(req,res,next)=>{
 
 routeFunc.show = async(req,res,next)=>{
     try{
-        if(req.user.role === "admin"){
+        //if(req.user.role === "admin"){
             let allUsers = await user.find({},{_id:0,username:1})
             return res.json({Data:allUsers})
-        }
-        return res.json({Message:'Only System Admin can fetch all users !'})
+        //}
+        //return res.json({Message:'Only System Admin can fetch all users !'})
     }catch(err){
         next(err)
     }
@@ -47,22 +47,17 @@ routeFunc.show = async(req,res,next)=>{
 
 routeFunc.update = async(req,res,next)=>{
     try{
-        let loggedUser = req.user
-        let toUpdateUser = await user.findOne({email:req.body.email},{password:0})
-        if(toUpdateUser == null){
-            return res.json({Message:"You can't modify other user details ! - No user !"})
+        console.log("8 - update controller");
+        let updatedUser = await user.findByIdAndUpdate(req.params.id,
+            {$set:{
+                username:req.body.username
+            }},
+            {new:true}
+        ).select("-_id username email")
+        if(!updatedUser){
+            return res.status(404).json({Message:"User not found"})
         }
-        if(toUpdateUser && loggedUser._id.toString() === toUpdateUser._id.toString()){
-            let updatedUser = await user.findOneAndUpdate({email:req.user.email},
-                {$set:{
-                    username:req.body.username
-                }},
-                {new:true}
-            ).select("-_id username email")
-            return res.json({Message:'User updated !',From:req.user,To:updatedUser})
-        }else{
-            return res.status(403).json({Message:"You can't modify other user details !"})
-        }
+        return res.json({Message:'User updated !',From:req.user,To:updatedUser})
     }catch(err){
         next(err)
     }
@@ -70,17 +65,9 @@ routeFunc.update = async(req,res,next)=>{
 
 routeFunc.delete = async(req,res,next)=>{
     try{
-        let toDeleteUser = await user.findOne({username:req.body.username},{password:0})
-        let loggedUser = req.user
-        if(toDeleteUser == null){
-            return res.json({Message:"You can't delete other user ! - No user !"})
-        }
-        if(toDeleteUser._id.toString() === loggedUser._id.toString()){
-            await user.deleteOne({_id:req.user._id})
-            return res.json({Message:`The user ${toDeleteUser.username} has been deleted !`})
-        }else{
-            return res.status(403).json({Message:"You can't delete other user !"})
-        }
+        console.log("8 - delete controller");
+        await user.deleteOne({_id:req.params.id})
+        return res.json({Message:`The user has been deleted !`})
     }catch(err){
         next(err)
     }
